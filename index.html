@@ -144,9 +144,10 @@ async function startPayment(total, name, phone, email) {
     }
 }
 
-function checkout(){
+async function checkout(){
+
     if(cart.length===0){
-        alert("Cart is empty!");
+        alert("Cart is empty");
         return;
     }
 
@@ -154,14 +155,41 @@ function checkout(){
     let phone=document.getElementById("custPhone").value;
     let email=document.getElementById("custEmail").value;
 
-    if(name===""||phone===""||email===""){
+    if(!name || !phone || !email){
         alert("Please fill all details");
         return;
     }
 
     let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
 
-    startPayment(totalAmount, name, phone, email);
+    try{
+        const response = await fetch("/api/create-order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                orderAmount: totalAmount,
+                customerName: name,
+                customerPhone: phone,
+                customerEmail: email
+            })
+        });
+
+        const data = await response.json();
+        console.log("Cashfree response:", data);
+
+        if(data.payment_session_id){
+            window.location.href =
+            "https://sandbox.cashfree.com/pg/view/" + data.payment_session_id;
+        } else {
+            alert("Payment failed");
+        }
+
+    }catch(error){
+        console.error(error);
+        alert("Something went wrong");
+    }
 }
 
 displayProducts();
@@ -169,4 +197,5 @@ displayProducts();
 
 </body>
 </html>
+
 
