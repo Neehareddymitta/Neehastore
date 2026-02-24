@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Neeha Store</title>
 
-<!-- Firebase -->
+<!-- Firebase Compat SDK (IMPORTANT) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
@@ -87,21 +87,12 @@ input{width:100%;padding:8px;margin:5px 0;}
 <!-- LOGIN POPUP -->
 <div class="login-popup" id="loginPopup">
 
-<h3 id="authTitle">Login</h3>
+<h3>Login</h3>
 
-<div id="emailAuth">
 <input type="email" id="email" placeholder="Email">
 <input type="password" id="password" placeholder="Password">
-<button onclick="emailLogin()">Login</button>
-<p class="toggle-link" onclick="toggleSignup()">Create Account</p>
-</div>
-
-<div id="signupSection" style="display:none;">
-<input type="email" id="signupEmail" placeholder="Email">
-<input type="password" id="signupPassword" placeholder="Password">
+<button onclick="emailLogin()">Login with Email</button>
 <button onclick="emailSignup()">Sign Up</button>
-<p class="toggle-link" onclick="toggleSignup()">Back to Login</p>
-</div>
 
 <hr>
 
@@ -109,6 +100,7 @@ input{width:100%;padding:8px;margin:5px 0;}
 <input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
 <div id="recaptcha-container"></div>
 <button onclick="sendOTP()">Send OTP</button>
+
 <div id="otpSection" style="display:none;">
 <input type="text" id="otp" placeholder="Enter OTP">
 <button onclick="verifyOTP()">Verify OTP</button>
@@ -124,102 +116,22 @@ input{width:100%;padding:8px;margin:5px 0;}
 
 <script>
 
-/* 🔴 Replace with your Firebase config */
+/* FIREBASE CONFIG */
 const firebaseConfig = {
-apiKey:"YOUR_API_KEY",
-authDomain:"YOUR_AUTH_DOMAIN",
-projectId:"YOUR_PROJECT_ID",
-appId:"YOUR_APP_ID"
+  apiKey: "AIzaSyBHG-ugmBi7ILwpDr6VU1TQEAM6Fc8A9B8",
+  authDomain: "neehastore-8c8bc.firebaseapp.com",
+  projectId: "neehastore-8c8bc",
+  storageBucket: "neehastore-8c8bc.firebasestorage.app",
+  messagingSenderId: "759495137938",
+  appId: "1:759495137938:web:92409c0a561eebe543644b"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'normal'});
-
-/* EMAIL AUTH */
-function emailSignup(){
-let email=document.getElementById("signupEmail").value;
-let pass=document.getElementById("signupPassword").value;
-auth.createUserWithEmailAndPassword(email,pass)
-.then(()=>alert("Account created!"))
-.catch(e=>alert(e.message));
-}
-
-function emailLogin(){
-let email=document.getElementById("email").value;
-let pass=document.getElementById("password").value;
-auth.signInWithEmailAndPassword(email,pass)
-.then(()=>{
-document.getElementById("loginPopup").style.display="none";
-processOrder();
-})
-.catch(e=>alert(e.message));
-}
-
-function toggleSignup(){
-let signup=document.getElementById("signupSection");
-let emailAuth=document.getElementById("emailAuth");
-if(signup.style.display==="none"){
-signup.style.display="block";
-emailAuth.style.display="none";
-}else{
-signup.style.display="none";
-emailAuth.style.display="block";
-}
-}
-
-/* PHONE AUTH */
-function sendOTP(){
-let phone=document.getElementById("phoneNumber").value;
-auth.signInWithPhoneNumber(phone,window.recaptchaVerifier)
-.then(result=>{
-window.confirmationResult=result;
-alert("OTP Sent!");
-document.getElementById("otpSection").style.display="block";
-})
-.catch(e=>alert(e.message));
-}
-
-function verifyOTP(){
-let otp=document.getElementById("otp").value;
-confirmationResult.confirm(otp)
-.then(()=>{
-document.getElementById("loginPopup").style.display="none";
-processOrder();
-})
-.catch(()=>alert("Invalid OTP"));
-}
-
-function logout(){
-auth.signOut();
-}
-
-/* CHECKOUT */
-function checkout(){
-if(!auth.currentUser){
-document.getElementById("loginPopup").style.display="block";
-return;
-}
-processOrder();
-}
-
-function processOrder(){
-let total=document.getElementById("total").innerText;
-document.getElementById("orderDetails").innerHTML=
-"Order placed successfully!<br>"+total;
-cart=[];
-updateCart();
-document.getElementById("cart").classList.remove("active");
-document.getElementById("success").style.display="block";
-}
-
-function closeSuccess(){
-document.getElementById("success").style.display="none";
-}
 
 /* PRODUCTS */
-let products=JSON.parse(localStorage.getItem("products"))||[];
-let cart=[];
+let products = JSON.parse(localStorage.getItem("products")) || [];
+let cart = [];
 let adminPassword="neeha123";
 let isAdmin=false;
 
@@ -301,6 +213,74 @@ document.getElementById("total").innerText="Total: ₹"+total;
 
 function toggleCart(){
 document.getElementById("cart").classList.toggle("active");
+}
+
+/* AUTH */
+
+function emailSignup(){
+let email=document.getElementById("email").value;
+let pass=document.getElementById("password").value;
+auth.createUserWithEmailAndPassword(email,pass)
+.then(()=>alert("Account created!"))
+.catch(e=>alert(e.message));
+}
+
+function emailLogin(){
+let email=document.getElementById("email").value;
+let pass=document.getElementById("password").value;
+auth.signInWithEmailAndPassword(email,pass)
+.then(()=>{
+document.getElementById("loginPopup").style.display="none";
+processOrder();
+})
+.catch(e=>alert(e.message));
+}
+
+function sendOTP(){
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'normal'});
+let phone=document.getElementById("phoneNumber").value;
+auth.signInWithPhoneNumber(phone,window.recaptchaVerifier)
+.then(result=>{
+window.confirmationResult=result;
+alert("OTP Sent!");
+document.getElementById("otpSection").style.display="block";
+})
+.catch(e=>alert(e.message));
+}
+
+function verifyOTP(){
+let otp=document.getElementById("otp").value;
+confirmationResult.confirm(otp)
+.then(()=>{
+document.getElementById("loginPopup").style.display="none";
+processOrder();
+})
+.catch(()=>alert("Invalid OTP"));
+}
+
+function logout(){
+auth.signOut();
+}
+
+function checkout(){
+if(!auth.currentUser){
+document.getElementById("loginPopup").style.display="block";
+return;
+}
+processOrder();
+}
+
+function processOrder(){
+let total=document.getElementById("total").innerText;
+document.getElementById("orderDetails").innerHTML="Order placed!<br>"+total;
+cart=[];
+updateCart();
+document.getElementById("cart").classList.remove("active");
+document.getElementById("success").style.display="block";
+}
+
+function closeSuccess(){
+document.getElementById("success").style.display="none";
 }
 
 displayProducts();
