@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neeha Store Admin</title>
+
+<style>
+body{font-family:Arial;background:#f4f4f4;padding:20px;}
+.container{background:white;padding:20px;border-radius:10px;max-width:500px;margin:auto;}
+input{width:100%;padding:8px;margin:8px 0;}
+button{background:#6b2d2d;color:white;border:none;padding:8px;border-radius:5px;cursor:pointer;}
+button:hover{background:#8b3a3a;}
+.product{background:#fff;padding:10px;margin:10px 0;border-radius:8px;}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="loginBox">
+<h2>Admin Login</h2>
+<input type="password" id="adminPass" placeholder="Enter Admin Password">
+<button onclick="login()">Login</button>
+</div>
+
+<div class="container" id="adminPanel" style="display:none;">
+<h2>Manage Products</h2>
+
+<input type="text" id="name" placeholder="Product Name">
+<input type="number" id="price" placeholder="Price">
+<input type="file" id="image">
+<button onclick="addProduct()">Add Product</button>
+
+<h3>Existing Products</h3>
+<div id="productList"></div>
+</div>
+
+<script>
+
+const ADMIN_PASSWORD = "neeha123";
+
+function login(){
+    let pass=document.getElementById("adminPass").value;
+    if(pass===ADMIN_PASSWORD){
+        document.getElementById("loginBox").style.display="none";
+        document.getElementById("adminPanel").style.display="block";
+        displayProducts();
+    } else {
+        alert("Wrong password");
+    }
+}
+
+let products = JSON.parse(localStorage.getItem("products")) || [];
+
+function addProduct(){
+    let name=document.getElementById("name").value;
+    let price=document.getElementById("price").value;
+    let imageFile=document.getElementById("image").files[0];
+
+    if(!name||!price||!imageFile){
+        alert("Fill all fields");
+        return;
+    }
+
+    let reader=new FileReader();
+    reader.onload=function(e){
+        products.push({
+            name:name,
+            price:parseInt(price),
+            image:e.target.result,
+            inStock:true
+        });
+        localStorage.setItem("products",JSON.stringify(products));
+        displayProducts();
+    };
+    reader.readAsDataURL(imageFile);
+}
+
+function displayProducts(){
+    let container=document.getElementById("productList");
+    container.innerHTML="";
+    products.forEach((p,i)=>{
+        container.innerHTML+=`
+        <div class="product">
+            <b>${p.name}</b> - ₹${p.price}<br>
+            Status: ${p.inStock?"In Stock":"Out of Stock"}<br>
+            <button onclick="toggleStock(${i})">
+                ${p.inStock?"Mark Out of Stock":"Mark In Stock"}
+            </button>
+            <button onclick="removeProduct(${i})" style="background:red;">Remove</button>
+        </div>`;
+    });
+}
+
+function toggleStock(i){
+    products[i].inStock=!products[i].inStock;
+    localStorage.setItem("products",JSON.stringify(products));
+    displayProducts();
+}
+
+function removeProduct(i){
+    products.splice(i,1);
+    localStorage.setItem("products",JSON.stringify(products));
+    displayProducts();
+}
+
+</script>
+
+</body>
+</html>
