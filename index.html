@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neeha Store</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+<style>
+body{margin:0;font-family:Arial;background:#f6f6f6;}
+header{
+background:#6b2d2d;color:white;padding:15px;
+display:flex;justify-content:space-between;align-items:center;
+}
+.products{
+display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;padding:15px;
+}
+.product{
+background:white;padding:10px;border-radius:10px;
+text-align:center;box-shadow:0 3px 10px rgba(0,0,0,0.1);
+position:relative;
+}
+.product img{width:100%;border-radius:10px;}
+button{
+background:#6b2d2d;color:white;border:none;
+padding:8px;border-radius:5px;cursor:pointer;margin-top:5px;
+}
+button:hover{background:#8b3a3a;}
+.admin-panel{display:none;background:white;padding:15px;margin:15px;border-radius:10px;}
+.cart-drawer{
+position:fixed;right:-100%;top:0;width:320px;height:100%;
+background:white;box-shadow:-3px 0 10px rgba(0,0,0,0.2);
+padding:20px;transition:0.4s;overflow-y:auto;
+}
+.cart-drawer.active{right:0;}
+.success-popup,.login-popup{
+position:fixed;top:50%;left:50%;
+transform:translate(-50%,-50%);
+background:white;padding:25px;text-align:center;
+box-shadow:0 5px 20px rgba(0,0,0,0.3);
+display:none;border-radius:10px;width:320px;
+}
+.out-badge{
+position:absolute;top:10px;left:10px;
+background:red;color:white;padding:5px 8px;
+font-size:12px;border-radius:5px;
+}
+.disabled-btn{background:gray !important;cursor:not-allowed;}
+input{width:100%;padding:8px;margin:5px 0;}
+.toggle-link{color:blue;cursor:pointer;font-size:13px;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h2>Neeha Store</h2>
+<div>
+<button onclick="adminLogin()">Admin</button>
+🛒 (<span id="cart-count">0</span>)
+<button onclick="toggleCart()">View Cart</button>
+<button onclick="logout()">Logout</button>
+</div>
+</header>
+
+<div class="admin-panel" id="adminPanel">
+<h3>Add Product</h3>
+<input type="text" id="name" placeholder="Product Name">
+<input type="number" id="price" placeholder="Price">
+<input type="file" id="image">
+<button onclick="addProduct()">Add</button>
+</div>
+
+<div class="products" id="product-list"></div>
+
+<div class="cart-drawer" id="cart">
+<h3>Your Cart</h3>
+<div id="cart-items"></div>
+<h4 id="total"></h4>
+<button onclick="checkout()">Proceed to Payment</button>
+</div>
+
+<!-- LOGIN POPUP -->
+<div class="login-popup" id="loginPopup">
+
+<h3 id="authTitle">Login</h3>
+
+<div id="emailAuth">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<button onclick="emailLogin()">Login</button>
+<p class="toggle-link" onclick="toggleSignup()">Create Account</p>
+</div>
+
+<div id="signupSection" style="display:none;">
+<input type="email" id="signupEmail" placeholder="Email">
+<input type="password" id="signupPassword" placeholder="Password">
+<button onclick="emailSignup()">Sign Up</button>
+<p class="toggle-link" onclick="toggleSignup()">Back to Login</p>
+</div>
+
+<hr>
+
+<h4>OR Login with Phone</h4>
+<input type="text" id="phoneNumber" placeholder="+91XXXXXXXXXX">
+<div id="recaptcha-container"></div>
+<button onclick="sendOTP()">Send OTP</button>
+<div id="otpSection" style="display:none;">
+<input type="text" id="otp" placeholder="Enter OTP">
+<button onclick="verifyOTP()">Verify OTP</button>
+</div>
+
+</div>
+
+<div class="success-popup" id="success">
+<h3>🎉 Order Confirmed!</h3>
+<p id="orderDetails"></p>
+<button onclick="closeSuccess()">Continue Shopping</button>
+</div>
+
+<script>
+
+/* 🔴 Replace with your Firebase config */
+const firebaseConfig = {
+apiKey:"YOUR_API_KEY",
+authDomain:"YOUR_AUTH_DOMAIN",
+projectId:"YOUR_PROJECT_ID",
+appId:"YOUR_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'normal'});
+
+/* EMAIL AUTH */
+function emailSignup(){
+let email=document.getElementById("signupEmail").value;
+let pass=document.getElementById("signupPassword").value;
+auth.createUserWithEmailAndPassword(email,pass)
+.then(()=>alert("Account created!"))
+.catch(e=>alert(e.message));
+}
+
+function emailLogin(){
+let email=document.getElementById("email").value;
+let pass=document.getElementById("password").value;
+auth.signInWithEmailAndPassword(email,pass)
+.then(()=>{
+document.getElementById("loginPopup").style.display="none";
+processOrder();
+})
+.catch(e=>alert(e.message));
+}
+
+function toggleSignup(){
+let signup=document.getElementById("signupSection");
+let emailAuth=document.getElementById("emailAuth");
+if(signup.style.display==="none"){
+signup.style.display="block";
+emailAuth.style.display="none";
+}else{
+signup.style.display="none";
+emailAuth.style.display="block";
+}
+}
+
+/* PHONE AUTH */
+function sendOTP(){
+let phone=document.getElementById("phoneNumber").value;
+auth.signInWithPhoneNumber(phone,window.recaptchaVerifier)
+.then(result=>{
+window.confirmationResult=result;
+alert("OTP Sent!");
+document.getElementById("otpSection").style.display="block";
+})
+.catch(e=>alert(e.message));
+}
+
+function verifyOTP(){
+let otp=document.getElementById("otp").value;
+confirmationResult.confirm(otp)
+.then(()=>{
+document.getElementById("loginPopup").style.display="none";
+processOrder();
+})
+.catch(()=>alert("Invalid OTP"));
+}
+
+function logout(){
+auth.signOut();
+}
+
+/* CHECKOUT */
+function checkout(){
+if(!auth.currentUser){
+document.getElementById("loginPopup").style.display="block";
+return;
+}
+processOrder();
+}
+
+function processOrder(){
+let total=document.getElementById("total").innerText;
+document.getElementById("orderDetails").innerHTML=
+"Order placed successfully!<br>"+total;
+cart=[];
+updateCart();
+document.getElementById("cart").classList.remove("active");
+document.getElementById("success").style.display="block";
+}
+
+function closeSuccess(){
+document.getElementById("success").style.display="none";
+}
+
+/* PRODUCTS */
+let products=JSON.parse(localStorage.getItem("products"))||[];
+let cart=[];
+let adminPassword="neeha123";
+let isAdmin=false;
+
+function adminLogin(){
+let pass=prompt("Enter Admin Password:");
+if(pass===adminPassword){
+isAdmin=true;
+document.getElementById("adminPanel").style.display="block";
+displayProducts();
+}
+}
+
+function addProduct(){
+let name=document.getElementById("name").value;
+let price=document.getElementById("price").value;
+let image=document.getElementById("image").files[0];
+let reader=new FileReader();
+reader.onload=e=>{
+products.push({name,price:parseInt(price),image:e.target.result,inStock:true});
+localStorage.setItem("products",JSON.stringify(products));
+displayProducts();
+};
+reader.readAsDataURL(image);
+}
+
+function displayProducts(){
+let container=document.getElementById("product-list");
+container.innerHTML="";
+products.forEach((p,i)=>{
+container.innerHTML+=`
+<div class="product">
+${!p.inStock?'<div class="out-badge">Out of Stock</div>':''}
+<img src="${p.image}">
+<h4>${p.name}</h4>
+<p>₹${p.price}</p>
+<button onclick="addToCart(${i})"
+${!p.inStock?'disabled class="disabled-btn"':''}>
+${p.inStock?'Add to Cart':'Unavailable'}
+</button>
+${isAdmin?`
+<button onclick="toggleStock(${i})">
+${p.inStock?'Mark Out':'Mark In'}
+</button>
+<button onclick="removeProduct(${i})" style="background:red;">Remove</button>`:''}
+</div>`;
+});
+}
+
+function toggleStock(i){
+products[i].inStock=!products[i].inStock;
+localStorage.setItem("products",JSON.stringify(products));
+displayProducts();
+}
+
+function removeProduct(i){
+products.splice(i,1);
+localStorage.setItem("products",JSON.stringify(products));
+displayProducts();
+}
+
+function addToCart(i){
+if(products[i].inStock){
+cart.push(products[i]);
+updateCart();
+}
+}
+
+function updateCart(){
+let total=0;
+let items="";
+cart.forEach(p=>{
+total+=p.price;
+items+=p.name+" - ₹"+p.price+"<br>";
+});
+document.getElementById("cart-items").innerHTML=items;
+document.getElementById("cart-count").innerText=cart.length;
+document.getElementById("total").innerText="Total: ₹"+total;
+}
+
+function toggleCart(){
+document.getElementById("cart").classList.toggle("active");
+}
+
+displayProducts();
+
+</script>
+</body>
+</html>
