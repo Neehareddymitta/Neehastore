@@ -8,59 +8,61 @@
 <style>
 body{margin:0;font-family:Arial;background:#f6f6f6;}
 header{
-    background:#6b2d2d;color:white;padding:15px;
-    display:flex;justify-content:space-between;align-items:center;
+background:#6b2d2d;color:white;padding:15px;
+display:flex;justify-content:space-between;align-items:center;
 }
 .products{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-    gap:15px;padding:15px;
+display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;padding:15px;
 }
 .product{
-    background:white;padding:10px;border-radius:10px;
-    text-align:center;box-shadow:0 3px 10px rgba(0,0,0,0.1);
+background:white;padding:10px;border-radius:10px;
+text-align:center;box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 .product img{width:100%;border-radius:10px;}
 button{
-    background:#6b2d2d;color:white;border:none;
-    padding:8px;border-radius:5px;cursor:pointer;margin-top:5px;
+background:#6b2d2d;color:white;border:none;
+padding:8px;border-radius:5px;cursor:pointer;margin-top:5px;
 }
 button:hover{background:#8b3a3a;}
 .cart-drawer{
-    position:fixed;right:-100%;top:0;width:320px;height:100%;
-    background:white;box-shadow:-3px 0 10px rgba(0,0,0,0.2);
-    padding:20px;transition:0.4s;overflow-y:auto;
+position:fixed;right:-100%;top:0;width:320px;height:100%;
+background:white;box-shadow:-3px 0 10px rgba(0,0,0,0.2);
+padding:20px;transition:0.4s;overflow-y:auto;
 }
 .cart-drawer.active{right:0;}
 .cart-item{border-bottom:1px solid #ddd;margin-bottom:10px;padding-bottom:5px;}
+input{width:100%;padding:8px;margin:5px 0;}
 </style>
 </head>
 
 <body>
 
 <header>
-    <h2>Neeha Store</h2>
-    <div>
-        🛒 (<span id="cart-count">0</span>)
-        <button onclick="toggleCart()">View Cart</button>
-    </div>
+<h2>Neeha Store</h2>
+<div>
+🛒 (<span id="cart-count">0</span>)
+<button onclick="toggleCart()">View Cart</button>
+</div>
 </header>
 
 <div class="products" id="product-list"></div>
 
 <div class="cart-drawer" id="cart">
-    <h3>Your Cart</h3>
-    <div id="cart-items"></div>
-    <h4 id="total"></h4>
+<h3>Your Cart</h3>
+<div id="cart-items"></div>
+<h4 id="total"></h4>
 
-    <h3>Customer Details</h3>
-    <input type="text" id="custName" placeholder="Full Name">
-    <input type="text" id="custPhone" placeholder="Phone Number">
-    <input type="email" id="custEmail" placeholder="Email">
-    
-    <button onclick="checkout()">Proceed to Payment</button>
+<h3>Customer Details</h3>
+<input type="text" id="custName" placeholder="Full Name">
+<input type="text" id="custPhone" placeholder="Phone Number">
+<input type="email" id="custEmail" placeholder="Email">
+
+<button onclick="checkout()">Proceed to Payment</button>
 </div>
 
 <script>
+
 let products = JSON.parse(localStorage.getItem("products")) || [];
 let cart = [];
 
@@ -99,6 +101,7 @@ function updateCart(){
     let cartItems=document.getElementById("cart-items");
     let total=0;
     cartItems.innerHTML="";
+
     cart.forEach((item,i)=>{
         total+=item.price;
         cartItems.innerHTML+=`
@@ -107,6 +110,7 @@ function updateCart(){
             <button onclick="removeItem(${i})">X</button>
         </div>`;
     });
+
     document.getElementById("cart-count").innerText=cart.length;
     document.getElementById("total").innerText="Total: ₹"+total;
 }
@@ -118,30 +122,6 @@ function removeItem(index){
 
 function toggleCart(){
     document.getElementById("cart").classList.toggle("active");
-}
-
-async function startPayment(total, name, phone, email) {
-    const response = await fetch("/api/create-order", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            orderAmount: total,
-            customerName: name,
-            customerPhone: phone,
-            customerEmail: email
-        })
-    });
-
-    const data = await response.json();
-
-    if (data.payment_link) {
-        window.location.href = data.payment_link;
-    } else {
-        alert("Payment failed. Try again.");
-        console.log(data);
-    }
 }
 
 async function checkout(){
@@ -163,6 +143,7 @@ async function checkout(){
     let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
 
     try{
+
         const response = await fetch("/api/create-order", {
             method: "POST",
             headers: {
@@ -193,9 +174,8 @@ async function checkout(){
 }
 
 displayProducts();
+
 </script>
 
 </body>
 </html>
-
-
