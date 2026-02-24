@@ -61,24 +61,31 @@ button:hover{background:#8b3a3a;}
 </div>
 
 <script>
-let products = [
-    {name:"Dress 1", price:999, image:"https://via.placeholder.com/200"},
-    {name:"Dress 2", price:1299, image:"https://via.placeholder.com/200"},
-    {name:"Dress 3", price:799, image:"https://via.placeholder.com/200"}
-];
-
+let products = JSON.parse(localStorage.getItem("products")) || [];
 let cart = [];
 
 function displayProducts(){
     let container=document.getElementById("product-list");
     container.innerHTML="";
+
+    if(products.length===0){
+        container.innerHTML="<p style='padding:15px;'>No products available</p>";
+        return;
+    }
+
     products.forEach((product,index)=>{
         container.innerHTML+=`
         <div class="product">
+            ${!product.inStock ? '<div style="color:red;font-weight:bold;">Out of Stock</div>' : ''}
             <img src="${product.image}">
             <h4>${product.name}</h4>
             <p>₹${product.price}</p>
-            <button onclick="addToCart(${index})">Add to Cart</button>
+            <button 
+                onclick="addToCart(${index})"
+                ${!product.inStock ? "disabled" : ""}
+            >
+                ${product.inStock ? "Add to Cart" : "Unavailable"}
+            </button>
         </div>`;
     });
 }
@@ -162,3 +169,4 @@ displayProducts();
 
 </body>
 </html>
+
