@@ -15,16 +15,16 @@ export default async function handler(req, res) {
         "x-api-version": "2022-09-01"
       },
       body: JSON.stringify({
-        order_amount: orderAmount,
-        order_currency: "INR",
-        customer_details: {
-          customer_id: "cust_" + Date.now(),
-          customer_name: customerName,
-          customer_email: customerEmail,
-          customer_phone: customerPhone
-        }
-      })
-    });
+  order_id: "order_" + Date.now(),
+  order_amount: orderAmount,
+  order_currency: "INR",
+  customer_details: {
+    customer_id: "cust_" + Date.now(),
+    customer_name: customerName,
+    customer_email: customerEmail,
+    customer_phone: customerPhone
+  }
+})
 
     const data = await response.json();
     return res.status(200).json(data);
