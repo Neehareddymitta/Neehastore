@@ -8,7 +8,12 @@
 <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#f5f5f5;}
+
+body{
+margin:0;
+font-family:Arial;
+background:#f5f5f5;
+}
 
 header{
 background:#6b2d2d;
@@ -53,7 +58,7 @@ margin-top:5px;
 position:fixed;
 right:0;
 top:0;
-width:300px;
+width:320px;
 height:100%;
 background:white;
 padding:20px;
@@ -66,6 +71,7 @@ width:100%;
 padding:8px;
 margin:5px 0;
 }
+
 </style>
 
 </head>
@@ -73,10 +79,13 @@ margin:5px 0;
 <body>
 
 <header>
+
 <h2>Neeha Store</h2>
+
 <div>
 Cart (<span id="cart-count">0</span>)
 </div>
+
 </header>
 
 <div class="products" id="product-list"></div>
@@ -84,14 +93,26 @@ Cart (<span id="cart-count">0</span>)
 <div class="cart">
 
 <h3>Your Cart</h3>
+
 <div id="cart-items"></div>
+
 <h4 id="total"></h4>
 
 <h3>Customer Details</h3>
 
 <input type="text" id="custName" placeholder="Full Name">
+
 <input type="text" id="custPhone" placeholder="Phone Number">
+
 <input type="email" id="custEmail" placeholder="Email">
+
+<input type="text" id="custAddress" placeholder="Address">
+
+<input type="text" id="custCity" placeholder="City">
+
+<input type="text" id="custState" placeholder="State">
+
+<input type="text" id="custPincode" placeholder="Pincode">
 
 <button onclick="checkout()">Proceed to Payment</button>
 
@@ -109,15 +130,30 @@ let container=document.getElementById("product-list");
 
 container.innerHTML="";
 
+if(products.length===0){
+
+container.innerHTML="<p style='padding:20px'>No products available</p>";
+
+return;
+
+}
+
 products.forEach((p,i)=>{
 
 container.innerHTML+=`
+
 <div class="product">
+
 <img src="${p.image}">
+
 <h4>${p.name}</h4>
+
 <p>₹${p.price}</p>
+
 <button onclick="addToCart(${i})">Add to Cart</button>
+
 </div>
+
 `;
 
 });
@@ -129,6 +165,8 @@ function addToCart(index){
 cart.push(products[index]);
 
 updateCart();
+
+alert("Item added to cart");
 
 }
 
@@ -145,9 +183,13 @@ cart.forEach((item,i)=>{
 total+=item.price;
 
 cartItems.innerHTML+=`
+
 <div>
+
 ${item.name} - ₹${item.price}
+
 </div>
+
 `;
 
 });
@@ -174,7 +216,15 @@ let phone=document.getElementById("custPhone").value;
 
 let email=document.getElementById("custEmail").value;
 
-if(!name || !phone || !email){
+let address=document.getElementById("custAddress").value;
+
+let city=document.getElementById("custCity").value;
+
+let state=document.getElementById("custState").value;
+
+let pincode=document.getElementById("custPincode").value;
+
+if(!name || !phone || !email || !address || !city || !state || !pincode){
 
 alert("Please fill all details");
 
@@ -204,7 +254,15 @@ customerName:name,
 
 customerPhone:phone,
 
-customerEmail:email
+customerEmail:email,
+
+customerAddress:address,
+
+customerCity:city,
+
+customerState:state,
+
+customerPincode:pincode
 
 })
 
@@ -245,4 +303,5 @@ displayProducts();
 </script>
 
 </body>
+
 </html>
