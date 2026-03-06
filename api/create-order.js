@@ -14,7 +14,7 @@ export default async function handler(req, res) {
         "Content-Type": "application/json",
         "x-client-id": process.env.CASHFREE_APP_ID,
         "x-client-secret": process.env.CASHFREE_SECRET_KEY,
-        "x-api-version": "2022-09-01"
+        "x-api-version": "2023-08-01"
       },
       body: JSON.stringify({
         order_id: "order_" + Date.now(),
@@ -37,8 +37,14 @@ export default async function handler(req, res) {
     return res.status(200).json(data);
 
   } catch (error) {
-    console.error("Cashfree error:", error);
-    return res.status(500).json({ error: "Payment initiation failed" });
+
+    console.error(error);
+
+    return res.status(500).json({
+      error: "Cashfree request failed",
+      details: error.message
+    });
+
   }
 
 }
