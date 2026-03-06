@@ -26,7 +26,7 @@ align-items:center;
 
 .products{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:20px;
 padding:20px;
 }
@@ -56,7 +56,7 @@ margin-top:5px;
 
 .cart{
 position:fixed;
-right:0;
+right:-350px;
 top:0;
 width:320px;
 height:100%;
@@ -64,12 +64,22 @@ background:white;
 padding:20px;
 box-shadow:-3px 0 10px rgba(0,0,0,0.2);
 overflow-y:auto;
+transition:0.3s;
+}
+
+.cart.open{
+right:0;
 }
 
 input{
 width:100%;
 padding:8px;
 margin:5px 0;
+}
+
+.closeBtn{
+background:red;
+margin-bottom:10px;
 }
 
 </style>
@@ -82,15 +92,17 @@ margin:5px 0;
 
 <h2>Neeha Store</h2>
 
-<div>
+<button onclick="toggleCart()">
 Cart (<span id="cart-count">0</span>)
-</div>
+</button>
 
 </header>
 
 <div class="products" id="product-list"></div>
 
-<div class="cart">
+<div class="cart" id="cart">
+
+<button class="closeBtn" onclick="toggleCart()">Close</button>
 
 <h3>Your Cart</h3>
 
@@ -101,17 +113,11 @@ Cart (<span id="cart-count">0</span>)
 <h3>Customer Details</h3>
 
 <input type="text" id="custName" placeholder="Full Name">
-
 <input type="text" id="custPhone" placeholder="Phone Number">
-
 <input type="email" id="custEmail" placeholder="Email">
-
 <input type="text" id="custAddress" placeholder="Address">
-
 <input type="text" id="custCity" placeholder="City">
-
 <input type="text" id="custState" placeholder="State">
-
 <input type="text" id="custPincode" placeholder="Pincode">
 
 <button onclick="checkout()">Proceed to Payment</button>
@@ -166,6 +172,8 @@ cart.push(products[index]);
 
 updateCart();
 
+toggleCart();
+
 alert("Item added to cart");
 
 }
@@ -185,9 +193,7 @@ total+=item.price;
 cartItems.innerHTML+=`
 
 <div>
-
 ${item.name} - ₹${item.price}
-
 </div>
 
 `;
@@ -197,6 +203,14 @@ ${item.name} - ₹${item.price}
 document.getElementById("cart-count").innerText=cart.length;
 
 document.getElementById("total").innerText="Total: ₹"+total;
+
+}
+
+function toggleCart(){
+
+let cartPanel=document.getElementById("cart");
+
+cartPanel.classList.toggle("open");
 
 }
 
@@ -211,17 +225,11 @@ return;
 }
 
 let name=document.getElementById("custName").value;
-
 let phone=document.getElementById("custPhone").value;
-
 let email=document.getElementById("custEmail").value;
-
 let address=document.getElementById("custAddress").value;
-
 let city=document.getElementById("custCity").value;
-
 let state=document.getElementById("custState").value;
-
 let pincode=document.getElementById("custPincode").value;
 
 if(!name || !phone || !email || !address || !city || !state || !pincode){
@@ -241,28 +249,15 @@ const response=await fetch("/api/create-order",{
 method:"POST",
 
 headers:{
-
 "Content-Type":"application/json"
-
 },
 
 body:JSON.stringify({
 
 orderAmount:totalAmount,
-
 customerName:name,
-
 customerPhone:phone,
-
-customerEmail:email,
-
-customerAddress:address,
-
-customerCity:city,
-
-customerState:state,
-
-customerPincode:pincode
+customerEmail:email
 
 })
 
@@ -277,7 +272,6 @@ const cashfree = Cashfree({ mode: "sandbox" });
 cashfree.checkout({
 
 paymentSessionId:data.payment_session_id,
-
 redirectTarget:"_self"
 
 });
@@ -289,8 +283,6 @@ alert("Payment failed");
 }
 
 }catch(error){
-
-console.error(error);
 
 alert("Something went wrong");
 
