@@ -267,6 +267,8 @@ const data=await response.json();
 
 if(data.payment_session_id){
 
+sendWhatsApp(name, phone, email, address, city, state, pincode, totalAmount);
+
 const cashfree = Cashfree({ mode: "sandbox" });
 
 cashfree.checkout({
@@ -289,6 +291,28 @@ alert("Something went wrong");
 }
 
 }
+function sendWhatsApp(name, phone, email, address, city, state, pincode, totalAmount){
+
+let message = `New Order from Neeha Store
+
+Name: ${name}
+Phone: ${phone}
+Email: ${email}
+
+Address:
+${address}
+${city}
+${state} - ${pincode}
+
+Total: ₹${totalAmount}`;
+
+let whatsappNumber = "919381995119"; // your WhatsApp number
+
+let url = "https://wa.me/" + whatsappNumber + "?text=" + encodeURIComponent(message);
+
+window.open(url, "_blank");
+
+}
 
 displayProducts();
 
@@ -297,3 +321,4 @@ displayProducts();
 </body>
 
 </html>
+
