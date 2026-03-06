@@ -8,17 +8,17 @@ export default async function handler(req, res) {
 
     const { orderAmount, customerName, customerPhone, customerEmail } = req.body;
 
-    const response = await fetch("https://sandbox.cashfree.com/pg/orders", {
+    const cashfreeResponse = await fetch("https://sandbox.cashfree.com/pg/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-client-id": process.env.CASHFREE_APP_ID,
         "x-client-secret": process.env.CASHFREE_SECRET_KEY,
-        "x-api-version": "2023-08-01"
+        "x-api-version": "2022-09-01"
       },
       body: JSON.stringify({
         order_id: "order_" + Date.now(),
-        order_amount: orderAmount,
+        order_amount: Number(orderAmount),
         order_currency: "INR",
         customer_details: {
           customer_id: "cust_" + Date.now(),
@@ -32,17 +32,20 @@ export default async function handler(req, res) {
       })
     });
 
-    const data = await response.json();
+    const data = await cashfreeResponse.json();
+
+    if (!cashfreeResponse.ok) {
+      return res.status(400).json(data);
+    }
 
     return res.status(200).json(data);
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Server error:", error);
 
     return res.status(500).json({
-      error: "Cashfree request failed",
-      details: error.message
+      message: "Cashfree server error"
     });
 
   }
