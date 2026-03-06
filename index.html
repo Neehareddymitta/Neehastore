@@ -4,37 +4,70 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Neeha Store</title>
+
 <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
 <style>
-body{margin:0;font-family:Arial;background:#f6f6f6;}
+body{margin:0;font-family:Arial;background:#f5f5f5;}
+
 header{
-background:#6b2d2d;color:white;padding:15px;
-display:flex;justify-content:space-between;align-items:center;
+background:#6b2d2d;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
+
 .products{
-display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-gap:15px;padding:15px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+gap:20px;
+padding:20px;
 }
+
 .product{
-background:white;padding:10px;border-radius:10px;
-text-align:center;box-shadow:0 3px 10px rgba(0,0,0,0.1);
+background:white;
+padding:10px;
+border-radius:10px;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
+text-align:center;
 }
-.product img{width:100%;border-radius:10px;}
+
+.product img{
+width:100%;
+border-radius:10px;
+}
+
 button{
-background:#6b2d2d;color:white;border:none;
-padding:8px;border-radius:5px;cursor:pointer;margin-top:5px;
+background:#6b2d2d;
+color:white;
+border:none;
+padding:8px;
+border-radius:5px;
+cursor:pointer;
+margin-top:5px;
 }
-button:hover{background:#8b3a3a;}
-.cart-drawer{
-position:fixed;right:-100%;top:0;width:320px;height:100%;
-background:white;box-shadow:-3px 0 10px rgba(0,0,0,0.2);
-padding:20px;transition:0.4s;overflow-y:auto;
+
+.cart{
+position:fixed;
+right:0;
+top:0;
+width:300px;
+height:100%;
+background:white;
+padding:20px;
+box-shadow:-3px 0 10px rgba(0,0,0,0.2);
+overflow-y:auto;
 }
-.cart-drawer.active{right:0;}
-.cart-item{border-bottom:1px solid #ddd;margin-bottom:10px;padding-bottom:5px;}
-input{width:100%;padding:8px;margin:5px 0;}
+
+input{
+width:100%;
+padding:8px;
+margin:5px 0;
+}
 </style>
+
 </head>
 
 <body>
@@ -42,136 +75,169 @@ input{width:100%;padding:8px;margin:5px 0;}
 <header>
 <h2>Neeha Store</h2>
 <div>
-🛒 (<span id="cart-count">0</span>)
-<button onclick="toggleCart()">View Cart</button>
+Cart (<span id="cart-count">0</span>)
 </div>
 </header>
 
 <div class="products" id="product-list"></div>
 
-<div class="cart-drawer" id="cart">
+<div class="cart">
+
 <h3>Your Cart</h3>
 <div id="cart-items"></div>
 <h4 id="total"></h4>
 
 <h3>Customer Details</h3>
+
 <input type="text" id="custName" placeholder="Full Name">
 <input type="text" id="custPhone" placeholder="Phone Number">
 <input type="email" id="custEmail" placeholder="Email">
 
 <button onclick="checkout()">Proceed to Payment</button>
+
 </div>
 
 <script>
 
 let products = JSON.parse(localStorage.getItem("products")) || [];
-let cart = [];
+
+let cart=[];
 
 function displayProducts(){
-    let container=document.getElementById("product-list");
-    container.innerHTML="";
 
-    if(products.length===0){
-        container.innerHTML="<p style='padding:15px;'>No products available</p>";
-        return;
-    }
+let container=document.getElementById("product-list");
 
-    products.forEach((product,index)=>{
-        container.innerHTML+=`
-        <div class="product">
-            ${!product.inStock ? '<div style="color:red;font-weight:bold;">Out of Stock</div>' : ''}
-            <img src="${product.image}">
-            <h4>${product.name}</h4>
-            <p>₹${product.price}</p>
-            <button 
-                onclick="addToCart(${index})"
-                ${!product.inStock ? "disabled" : ""}
-            >
-                ${product.inStock ? "Add to Cart" : "Unavailable"}
-            </button>
-        </div>`;
-    });
+container.innerHTML="";
+
+products.forEach((p,i)=>{
+
+container.innerHTML+=`
+<div class="product">
+<img src="${p.image}">
+<h4>${p.name}</h4>
+<p>₹${p.price}</p>
+<button onclick="addToCart(${i})">Add to Cart</button>
+</div>
+`;
+
+});
+
 }
 
 function addToCart(index){
-    cart.push(products[index]);
-    updateCart();
+
+cart.push(products[index]);
+
+updateCart();
+
 }
 
 function updateCart(){
-    let cartItems=document.getElementById("cart-items");
-    let total=0;
-    cartItems.innerHTML="";
 
-    cart.forEach((item,i)=>{
-        total+=item.price;
-        cartItems.innerHTML+=`
-        <div class="cart-item">
-            ${item.name} - ₹${item.price}
-            <button onclick="removeItem(${i})">X</button>
-        </div>`;
-    });
+let cartItems=document.getElementById("cart-items");
 
-    document.getElementById("cart-count").innerText=cart.length;
-    document.getElementById("total").innerText="Total: ₹"+total;
-}
+let total=0;
 
-function removeItem(index){
-    cart.splice(index,1);
-    updateCart();
-}
+cartItems.innerHTML="";
 
-function toggleCart(){
-    document.getElementById("cart").classList.toggle("active");
+cart.forEach((item,i)=>{
+
+total+=item.price;
+
+cartItems.innerHTML+=`
+<div>
+${item.name} - ₹${item.price}
+</div>
+`;
+
+});
+
+document.getElementById("cart-count").innerText=cart.length;
+
+document.getElementById("total").innerText="Total: ₹"+total;
+
 }
 
 async function checkout(){
 
-    if(cart.length===0){
-        alert("Cart is empty");
-        return;
-    }
+if(cart.length===0){
 
-    let name=document.getElementById("custName").value;
-    let phone=document.getElementById("custPhone").value;
-    let email=document.getElementById("custEmail").value;
+alert("Cart is empty");
 
-    if(!name || !phone || !email){
-        alert("Please fill all details");
-        return;
-    }
+return;
 
-    let totalAmount = cart.reduce((sum, item) => sum + item.price, 0);
+}
 
-    try{
+let name=document.getElementById("custName").value;
 
-        const response = await fetch("/api/create-order", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                orderAmount: totalAmount,
-                customerName: name,
-                customerPhone: phone,
-                customerEmail: email
-            })
-        });
+let phone=document.getElementById("custPhone").value;
 
-        const data = await response.json();
-        console.log("Cashfree response:", data);
+let email=document.getElementById("custEmail").value;
 
-        if(data.payment_session_id){
-            window.location.href =
-            "https://sandbox.cashfree.com/pg/view/" + data.payment_session_id;
-        } else {
-            alert("Payment failed");
-        }
+if(!name || !phone || !email){
 
-    }catch(error){
-        console.error(error);
-        alert("Something went wrong");
-    }
+alert("Please fill all details");
+
+return;
+
+}
+
+let totalAmount = cart.reduce((sum,item)=>sum+item.price,0);
+
+try{
+
+const response=await fetch("/api/create-order",{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":"application/json"
+
+},
+
+body:JSON.stringify({
+
+orderAmount:totalAmount,
+
+customerName:name,
+
+customerPhone:phone,
+
+customerEmail:email
+
+})
+
+});
+
+const data=await response.json();
+
+if(data.payment_session_id){
+
+const cashfree = Cashfree({ mode: "sandbox" });
+
+cashfree.checkout({
+
+paymentSessionId:data.payment_session_id,
+
+redirectTarget:"_self"
+
+});
+
+}else{
+
+alert("Payment failed");
+
+}
+
+}catch(error){
+
+console.error(error);
+
+alert("Something went wrong");
+
+}
+
 }
 
 displayProducts();
@@ -180,4 +246,3 @@ displayProducts();
 
 </body>
 </html>
-
