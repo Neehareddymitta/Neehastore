@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
     const { orderAmount, customerName, customerPhone, customerEmail } = req.body;
 
-    const cashfreeResponse = await fetch("https://sandbox.cashfree.com/pg/orders", {
+    const cashfreeResponse = await fetch("https://api.cashfree.com/pg/orders", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
