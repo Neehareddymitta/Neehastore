@@ -269,8 +269,7 @@ if(data.payment_session_id){
 
 sendWhatsApp(name, phone, email, address, city, state, pincode, totalAmount);
 
-const cashfree = Cashfree({ mode: "sandbox" });
-
+const cashfree = Cashfree({ mode: "production" });
 cashfree.checkout({
 
 paymentSessionId:data.payment_session_id,
@@ -321,4 +320,5 @@ displayProducts();
 </body>
 
 </html>
+
 
