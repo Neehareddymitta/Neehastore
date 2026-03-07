@@ -22,6 +22,18 @@ padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
+flex-wrap:wrap;
+}
+
+.header-right{
+display:flex;
+gap:10px;
+}
+
+.search-box{
+padding:6px;
+border-radius:5px;
+border:none;
 }
 
 .products{
@@ -51,7 +63,6 @@ border:none;
 padding:8px;
 border-radius:5px;
 cursor:pointer;
-margin-top:5px;
 }
 
 .cart{
@@ -82,6 +93,11 @@ background:red;
 margin-bottom:10px;
 }
 
+.sort{
+margin-left:10px;
+padding:5px;
+}
+
 </style>
 
 </head>
@@ -92,9 +108,25 @@ margin-bottom:10px;
 
 <h2>Neeha Store</h2>
 
+<input class="search-box" type="text" placeholder="Search product" onkeyup="searchProduct(this.value)">
+
+<select class="sort" onchange="sortProducts(this.value)">
+<option value="">Sort By</option>
+<option value="low">Price Low → High</option>
+<option value="high">Price High → Low</option>
+</select>
+
+<div class="header-right">
+
+<a href="account.html">
+<button>Account</button>
+</a>
+
 <button onclick="toggleCart()">
 Cart (<span id="cart-count">0</span>)
 </button>
+
+</div>
 
 </header>
 
@@ -127,27 +159,22 @@ Cart (<span id="cart-count">0</span>)
 <script>
 
 let products = JSON.parse(localStorage.getItem("products")) || [];
-
+let filteredProducts=[...products];
 let cart=[];
 
 function displayProducts(){
 
 let container=document.getElementById("product-list");
-
 container.innerHTML="";
 
-if(products.length===0){
-
-container.innerHTML="<p style='padding:20px'>No products available</p>";
-
+if(filteredProducts.length===0){
+container.innerHTML="<p>No products found</p>";
 return;
-
 }
 
-products.forEach((p,i)=>{
+filteredProducts.forEach((p,i)=>{
 
 container.innerHTML+=`
-
 <div class="product">
 
 <img src="${p.image}">
@@ -159,16 +186,39 @@ container.innerHTML+=`
 <button onclick="addToCart(${i})">Add to Cart</button>
 
 </div>
-
 `;
 
 });
 
 }
 
+function searchProduct(text){
+
+filteredProducts = products.filter(p =>
+p.name.toLowerCase().includes(text.toLowerCase())
+);
+
+displayProducts();
+
+}
+
+function sortProducts(type){
+
+if(type==="low"){
+filteredProducts.sort((a,b)=>a.price-b.price);
+}
+
+if(type==="high"){
+filteredProducts.sort((a,b)=>b.price-a.price);
+}
+
+displayProducts();
+
+}
+
 function addToCart(index){
 
-cart.push(products[index]);
+cart.push(filteredProducts[index]);
 
 updateCart();
 
@@ -181,7 +231,6 @@ alert("Item added to cart");
 function updateCart(){
 
 let cartItems=document.getElementById("cart-items");
-
 let total=0;
 
 cartItems.innerHTML="";
@@ -191,37 +240,29 @@ cart.forEach((item,i)=>{
 total+=item.price;
 
 cartItems.innerHTML+=`
-
 <div>
 ${item.name} - ₹${item.price}
 </div>
-
 `;
 
 });
 
 document.getElementById("cart-count").innerText=cart.length;
-
 document.getElementById("total").innerText="Total: ₹"+total;
 
 }
 
 function toggleCart(){
 
-let cartPanel=document.getElementById("cart");
-
-cartPanel.classList.toggle("open");
+document.getElementById("cart").classList.toggle("open");
 
 }
 
 async function checkout(){
 
 if(cart.length===0){
-
 alert("Cart is empty");
-
 return;
-
 }
 
 let name=document.getElementById("custName").value;
@@ -233,11 +274,8 @@ let state=document.getElementById("custState").value;
 let pincode=document.getElementById("custPincode").value;
 
 if(!name || !phone || !email || !address || !city || !state || !pincode){
-
 alert("Please fill all details");
-
 return;
-
 }
 
 let totalAmount = cart.reduce((sum,item)=>sum+item.price,0);
@@ -253,12 +291,10 @@ headers:{
 },
 
 body:JSON.stringify({
-
 orderAmount:totalAmount,
 customerName:name,
 customerPhone:phone,
 customerEmail:email
-
 })
 
 });
@@ -267,20 +303,28 @@ const data=await response.json();
 
 if(data.payment_session_id){
 
-sendWhatsApp(name, phone, email, address, city, state, pincode, totalAmount);
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+orders.push({
+name:name,
+phone:phone,
+email:email,
+amount:totalAmount,
+date:new Date().toLocaleString(),
+items:cart
+});
+
+localStorage.setItem("orders",JSON.stringify(orders));
 
 const cashfree = Cashfree({ mode: "production" });
-cashfree.checkout({
 
+cashfree.checkout({
 paymentSessionId:data.payment_session_id,
 redirectTarget:"_self"
-
 });
 
 }else{
-
 alert("Payment failed");
-
 }
 
 }catch(error){
@@ -290,35 +334,10 @@ alert("Something went wrong");
 }
 
 }
-function sendWhatsApp(name, phone, email, address, city, state, pincode, totalAmount){
-
-let message = `New Order from Neeha Store
-
-Name: ${name}
-Phone: ${phone}
-Email: ${email}
-
-Address:
-${address}
-${city}
-${state} - ${pincode}
-
-Total: ₹${totalAmount}`;
-
-let whatsappNumber = "919381995119"; // your WhatsApp number
-
-let url = "https://wa.me/" + whatsappNumber + "?text=" + encodeURIComponent(message);
-
-window.open(url, "_blank");
-
-}
 
 displayProducts();
 
 </script>
 
 </body>
-
 </html>
-
-
