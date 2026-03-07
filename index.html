@@ -259,6 +259,17 @@ document.getElementById("cart").classList.toggle("open");
 }
 
 async function checkout(){
+let loggedIn = localStorage.getItem("userLoggedIn");
+
+if(!loggedIn){
+
+alert("Please login before placing order");
+
+window.location.href="account.html";
+
+return;
+
+}
 
 if(cart.length===0){
 alert("Cart is empty");
@@ -341,3 +352,4 @@ displayProducts();
 
 </body>
 </html>
+
