@@ -104,34 +104,27 @@ let name=document.getElementById("pname").value;
 let price=document.getElementById("pprice").value;
 let file=document.getElementById("pimage").files[0];
 
-if(!name || !price || !file){
-alert("Fill all fields");
-return;
-}
-
 let reader=new FileReader();
 
 reader.onload=function(e){
 
-products.push({
+db.collection("products").add({
+
 name:name,
 price:Number(price),
-image:e.target.result,
-stock:true
-});
+image:e.target.result
 
-localStorage.setItem("products",JSON.stringify(products));
+}).then(()=>{
 
 alert("Product Added");
 
-location.reload();
+});
 
 };
 
 reader.readAsDataURL(file);
 
 }
-
 function loadProducts(){
 
 let container=document.getElementById("productList");
