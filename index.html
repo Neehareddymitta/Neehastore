@@ -5,33 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Neeha Store</title>
 
-<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
-
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
-<script>
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBHG-ugmBi7ILwpDr6VU1TQEAM6Fc8A9B8",
-  authDomain: "neehastore.firebaseapp.com",
-  projectId: "neehastore",
-  storageBucket: "neehastore.appspot.com",
-  messagingSenderId: "759495137938",
-  appId: "1:759495137938:web:92409c0a561eebe543644b"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.firestore();
-
-</script>
-
 <style>
 
 body{
-margin:0;
 font-family:Arial;
+margin:0;
 background:#f5f5f5;
 }
 
@@ -42,18 +20,6 @@ padding:15px;
 display:flex;
 justify-content:space-between;
 align-items:center;
-flex-wrap:wrap;
-}
-
-.header-right{
-display:flex;
-gap:10px;
-}
-
-.search-box{
-padding:6px;
-border-radius:5px;
-border:none;
 }
 
 .products{
@@ -67,8 +33,8 @@ padding:20px;
 background:white;
 padding:10px;
 border-radius:10px;
-box-shadow:0 3px 10px rgba(0,0,0,0.1);
 text-align:center;
+box-shadow:0 3px 10px rgba(0,0,0,0.1);
 }
 
 .product img{
@@ -94,7 +60,7 @@ height:100%;
 background:white;
 padding:20px;
 box-shadow:-3px 0 10px rgba(0,0,0,0.2);
-overflow-y:auto;
+overflow:auto;
 transition:0.3s;
 }
 
@@ -108,16 +74,6 @@ padding:8px;
 margin:5px 0;
 }
 
-.closeBtn{
-background:red;
-margin-bottom:10px;
-}
-
-.sort{
-margin-left:10px;
-padding:5px;
-}
-
 </style>
 
 </head>
@@ -128,25 +84,9 @@ padding:5px;
 
 <h2>Neeha Store</h2>
 
-<input class="search-box" type="text" placeholder="Search product" onkeyup="searchProduct(this.value)">
-
-<select class="sort" onchange="sortProducts(this.value)">
-<option value="">Sort By</option>
-<option value="low">Price Low → High</option>
-<option value="high">Price High → Low</option>
-</select>
-
-<div class="header-right">
-
-<a href="account.html">
-<button>Account</button>
-</a>
-
 <button onclick="toggleCart()">
 Cart (<span id="cart-count">0</span>)
 </button>
-
-</div>
 
 </header>
 
@@ -154,7 +94,7 @@ Cart (<span id="cart-count">0</span>)
 
 <div class="cart" id="cart">
 
-<button class="closeBtn" onclick="toggleCart()">Close</button>
+<button onclick="toggleCart()">Close</button>
 
 <h3>Your Cart</h3>
 
@@ -162,39 +102,44 @@ Cart (<span id="cart-count">0</span>)
 
 <h4 id="total"></h4>
 
-<h3>Customer Details</h3>
-
-<input type="text" id="custName" placeholder="Full Name">
-<input type="text" id="custPhone" placeholder="Phone Number">
-<input type="email" id="custEmail" placeholder="Email">
-<input type="text" id="custAddress" placeholder="Address">
-<input type="text" id="custCity" placeholder="City">
-<input type="text" id="custState" placeholder="State">
-<input type="text" id="custPincode" placeholder="Pincode">
-
-<button onclick="checkout()">Proceed to Payment</button>
-
 </div>
+
+<!-- Firebase -->
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
 
-let products = JSON.parse(localStorage.getItem("products")) || [];
-let filteredProducts=[...products];
+const firebaseConfig = {
+apiKey:"AIzaSyBHG-ugmBi7ILwpDr6VU1TQEAM6Fc8A9B8",
+authDomain:"neehastore.firebaseapp.com",
+projectId:"neehastore",
+storageBucket:"neehastore.appspot.com",
+messagingSenderId:"759495137938",
+appId:"1:759495137938:web:92409c0a561eebe543644b"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
 let cart=[];
 
 function displayProducts(){
 
-const container = document.getElementById("product-list");
+let container=document.getElementById("product-list");
 
-container.innerHTML = "";
+container.innerHTML="";
 
-db.collection("products").get().then((snapshot)=>{
+db.collection("products").get().then(snapshot=>{
 
-snapshot.forEach((doc)=>{
+snapshot.forEach(doc=>{
 
-let p = doc.data();
+let p=doc.data();
 
-container.innerHTML += `
+container.innerHTML+=`
+
 <div class="product">
 
 <img src="${p.image}">
@@ -203,11 +148,12 @@ container.innerHTML += `
 
 <p>₹${p.price}</p>
 
-<button onclick="addToCart('${doc.id}', '${p.name}', ${p.price}, '${p.image}')">
+<button onclick="addToCart('${p.name}',${p.price})">
 Add to Cart
 </button>
 
 </div>
+
 `;
 
 });
@@ -216,62 +162,36 @@ Add to Cart
 
 }
 
-function searchProduct(text){
+function addToCart(name,price){
 
-filteredProducts = products.filter(p =>
-p.name.toLowerCase().includes(text.toLowerCase())
-);
-
-displayProducts();
-
-}
-
-function sortProducts(type){
-
-if(type==="low"){
-filteredProducts.sort((a,b)=>a.price-b.price);
-}
-
-if(type==="high"){
-filteredProducts.sort((a,b)=>b.price-a.price);
-}
-
-displayProducts();
-
-}
-
-function addToCart(index){
-
-cart.push(filteredProducts[index]);
+cart.push({name,price});
 
 updateCart();
 
-toggleCart();
-
-alert("Item added to cart");
+alert("Added to cart");
 
 }
 
 function updateCart(){
 
 let cartItems=document.getElementById("cart-items");
+
 let total=0;
 
 cartItems.innerHTML="";
 
-cart.forEach((item,i)=>{
+cart.forEach(item=>{
 
 total+=item.price;
 
 cartItems.innerHTML+=`
-<div>
-${item.name} - ₹${item.price}
-</div>
+<div>${item.name} - ₹${item.price}</div>
 `;
 
 });
 
 document.getElementById("cart-count").innerText=cart.length;
+
 document.getElementById("total").innerText="Total: ₹"+total;
 
 }
@@ -282,102 +202,9 @@ document.getElementById("cart").classList.toggle("open");
 
 }
 
-async function checkout(){
-let loggedIn = localStorage.getItem("userLoggedIn");
-
-if(!loggedIn){
-
-alert("Please login before placing order");
-
-window.location.href="account.html";
-
-return;
-
-}
-
-if(cart.length===0){
-alert("Cart is empty");
-return;
-}
-
-let name=document.getElementById("custName").value;
-let phone=document.getElementById("custPhone").value;
-let email=document.getElementById("custEmail").value;
-let address=document.getElementById("custAddress").value;
-let city=document.getElementById("custCity").value;
-let state=document.getElementById("custState").value;
-let pincode=document.getElementById("custPincode").value;
-
-if(!name || !phone || !email || !address || !city || !state || !pincode){
-alert("Please fill all details");
-return;
-}
-
-let totalAmount = cart.reduce((sum,item)=>sum+item.price,0);
-
-try{
-
-const response=await fetch("/api/create-order",{
-
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-orderAmount:totalAmount,
-customerName:name,
-customerPhone:phone,
-customerEmail:email
-})
-
-});
-
-const data=await response.json();
-
-if(data.payment_session_id){
-
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-orders.push({
-name:name,
-phone:phone,
-email:email,
-amount:totalAmount,
-date:new Date().toLocaleString(),
-items:cart
-status:"Pending"
-});
-
-localStorage.setItem("orders",JSON.stringify(orders));
-
-const cashfree = Cashfree({ mode: "production" });
-
-cashfree.checkout({
-paymentSessionId:data.payment_session_id,
-redirectTarget:"_self"
-});
-
-}else{
-alert("Payment failed");
-}
-
-}catch(error){
-
-alert("Something went wrong");
-
-}
-
-}
-
 displayProducts();
 
 </script>
 
 </body>
 </html>
-
-
-
-
