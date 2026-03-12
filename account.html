@@ -1,39 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>My Account - Neeha Store</title>
+<title>Neeha Store Account</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <style>
+
 body{
 font-family:Arial;
 background:#f5f5f5;
-text-align:center;
-padding:50px;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
 }
 
 .box{
 background:white;
 padding:30px;
-width:300px;
-margin:auto;
 border-radius:10px;
+width:300px;
+text-align:center;
 }
 
 input{
 width:90%;
 padding:10px;
-margin:10px;
+margin:10px 0;
 }
 
 button{
-padding:10px 20px;
+padding:10px 15px;
 background:#6b2d2d;
 color:white;
 border:none;
+margin:5px;
+cursor:pointer;
 }
+
 </style>
 
 </head>
@@ -56,6 +62,8 @@ border:none;
 
 <p id="status"></p>
 
+<a href="index.html">Back to Store</a>
+
 </div>
 
 <script>
@@ -63,7 +71,8 @@ border:none;
 const firebaseConfig = {
 apiKey: "YOUR_API_KEY",
 authDomain: "YOUR_PROJECT.firebaseapp.com",
-projectId: "YOUR_PROJECT"
+projectId: "YOUR_PROJECT",
+appId: "YOUR_APP_ID"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -77,7 +86,14 @@ let password=document.getElementById("password").value;
 
 auth.createUserWithEmailAndPassword(email,password)
 .then(()=>{
-document.getElementById("status").innerText="Account created!";
+
+localStorage.setItem("userLoggedIn","true");
+
+document.getElementById("status").innerText="Account created successfully";
+
+})
+.catch(err=>{
+document.getElementById("status").innerText=err.message;
 });
 
 }
@@ -89,23 +105,27 @@ let password=document.getElementById("password").value;
 
 auth.signInWithEmailAndPassword(email,password)
 .then(()=>{
+
 localStorage.setItem("userLoggedIn","true");
-document.getElementById("status").innerText="Logged in!";
+
+document.getElementById("status").innerText="Login successful";
+
+})
+.catch(err=>{
+document.getElementById("status").innerText=err.message;
 });
 
 }
-<a href="orders.html">
-<button>My Orders</button>
-</a>
+
 function logout(){
 
 auth.signOut();
+
 localStorage.removeItem("userLoggedIn");
 
 document.getElementById("status").innerText="Logged out";
 
 }
-
 
 </script>
 
