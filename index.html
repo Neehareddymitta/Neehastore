@@ -7,6 +7,26 @@
 
 <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
 
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "neehastore.firebaseapp.com",
+  projectId: "neehastore",
+  storageBucket: "neehastore.appspot.com",
+  messagingSenderId: "759495137938",
+  appId: "1:759495137938:web:92409c0a561eebe543644b"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
+
+</script>
+
 <style>
 
 body{
@@ -164,17 +184,17 @@ let cart=[];
 
 function displayProducts(){
 
-let container=document.getElementById("product-list");
-container.innerHTML="";
+const container = document.getElementById("product-list");
 
-if(filteredProducts.length===0){
-container.innerHTML="<p>No products found</p>";
-return;
-}
+container.innerHTML = "";
 
-filteredProducts.forEach((p,i)=>{
+db.collection("products").get().then((snapshot)=>{
 
-container.innerHTML+=`
+snapshot.forEach((doc)=>{
+
+let p = doc.data();
+
+container.innerHTML += `
 <div class="product">
 
 <img src="${p.image}">
@@ -183,10 +203,14 @@ container.innerHTML+=`
 
 <p>₹${p.price}</p>
 
-<button onclick="addToCart(${i})">Add to Cart</button>
+<button onclick="addToCart('${doc.id}', '${p.name}', ${p.price}, '${p.image}')">
+Add to Cart
+</button>
 
 </div>
 `;
+
+});
 
 });
 
@@ -353,5 +377,6 @@ displayProducts();
 
 </body>
 </html>
+
 
 
