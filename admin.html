@@ -1,52 +1,41 @@
 <!DOCTYPE html>
 <html>
 <head>
-
-<title>Neeha Store Admin</title>
+<meta charset="UTF-8">
+<title>Admin Panel</title>
 
 <style>
 
 body{
 font-family:Arial;
-background:#f5f5f5;
-margin:0;
-}
-
-header{
-background:#6b2d2d;
-color:white;
-padding:15px;
-}
-
-.container{
-padding:30px;
-}
-
-.box{
-background:white;
 padding:20px;
-border-radius:10px;
-margin-bottom:30px;
+background:#f5f5f5;
 }
 
 input{
-width:100%;
+display:block;
+margin:10px 0;
 padding:8px;
-margin:5px 0;
+width:300px;
 }
 
 button{
+padding:10px;
 background:#6b2d2d;
 color:white;
 border:none;
-padding:8px;
 cursor:pointer;
-margin:5px 0;
 }
 
 .product{
-border-bottom:1px solid #ddd;
-padding:10px 0;
+background:white;
+padding:10px;
+margin:10px 0;
+border-radius:5px;
+}
+
+img{
+width:100px;
 }
 
 </style>
@@ -55,22 +44,7 @@ padding:10px 0;
 
 <body>
 
-<script>
-let pass = prompt("Enter Admin Password");
-
-if(pass !== "neehaadmin123"){
-alert("Access Denied");
-window.location.href="index.html";
-}
-</script>
-
-<header>
-<h2>Neeha Store Admin Panel</h2>
-</header>
-
-<div class="container">
-
-<div class="box">
+<h2>Admin Panel</h2>
 
 <h3>Add Product</h3>
 
@@ -82,27 +56,42 @@ window.location.href="index.html";
 
 <button onclick="addProduct()">Add Product</button>
 
-</div>
+<hr>
 
-<div class="box">
+<h3>Products</h3>
 
-<h3>Manage Products</h3>
+<div id="product-list"></div>
 
-<div id="productList"></div>
+<!-- Firebase -->
 
-</div>
-
-</div>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
 <script>
 
-let products = JSON.parse(localStorage.getItem("products")) || [];
+const firebaseConfig = {
+apiKey:"AIzaSyBHG-ugmBi7ILwpDr6VU1TQEAM6Fc8A9B8",
+authDomain:"neehastore.firebaseapp.com",
+projectId:"neehastore",
+storageBucket:"neehastore.appspot.com",
+messagingSenderId:"759495137938",
+appId:"1:759495137938:web:92409c0a561eebe543644b"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const db = firebase.firestore();
 
 function addProduct(){
 
 let name=document.getElementById("pname").value;
 let price=document.getElementById("pprice").value;
 let file=document.getElementById("pimage").files[0];
+
+if(!name || !price || !file){
+alert("Fill all fields");
+return;
+}
 
 let reader=new FileReader();
 
@@ -118,6 +107,8 @@ image:e.target.result
 
 alert("Product Added");
 
+displayProducts();
+
 });
 
 };
@@ -125,31 +116,40 @@ alert("Product Added");
 reader.readAsDataURL(file);
 
 }
-function loadProducts(){
 
-let container=document.getElementById("productList");
+function deleteProduct(id){
+
+db.collection("products").doc(id).delete().then(()=>{
+
+displayProducts();
+
+});
+
+}
+
+function displayProducts(){
+
+let container=document.getElementById("product-list");
 
 container.innerHTML="";
 
-products.forEach((p,i)=>{
+db.collection("products").get().then(snapshot=>{
+
+snapshot.forEach(doc=>{
+
+let p=doc.data();
 
 container.innerHTML+=`
 
 <div class="product">
 
-<img src="${p.image}" width="100">
+<img src="${p.image}">
 
-<p>${p.name}</p>
+<h4>${p.name}</h4>
 
 <p>₹${p.price}</p>
 
-<p>Status: ${p.stock ? "Available":"Out of Stock"}</p>
-
-<button onclick="toggleStock(${i})">
-${p.stock ? "Set Out of Stock":"Set Available"}
-</button>
-
-<button onclick="deleteProduct(${i})">
+<button onclick="deleteProduct('${doc.id}')">
 Delete
 </button>
 
@@ -159,29 +159,11 @@ Delete
 
 });
 
-}
-
-function toggleStock(i){
-
-products[i].stock=!products[i].stock;
-
-localStorage.setItem("products",JSON.stringify(products));
-
-loadProducts();
+});
 
 }
 
-function deleteProduct(i){
-
-products.splice(i,1);
-
-localStorage.setItem("products",JSON.stringify(products));
-
-loadProducts();
-
-}
-
-loadProducts();
+displayProducts();
 
 </script>
 
