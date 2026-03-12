@@ -2,7 +2,7 @@
 <html>
 <head>
 
-<title>Admin Panel - Neeha Store</title>
+<title>Neeha Store Admin</title>
 
 <style>
 
@@ -49,24 +49,26 @@ border-bottom:1px solid #ddd;
 padding:10px 0;
 }
 
-.order{
-border-bottom:1px solid #ddd;
-padding:10px 0;
-}
-
 </style>
 
 </head>
 
 <body>
 
+<script>
+let pass = prompt("Enter Admin Password");
+
+if(pass !== "neehaadmin123"){
+alert("Access Denied");
+window.location.href="index.html";
+}
+</script>
+
 <header>
 <h2>Neeha Store Admin Panel</h2>
 </header>
 
 <div class="container">
-
-<!-- ADD PRODUCT -->
 
 <div class="box">
 
@@ -76,14 +78,11 @@ padding:10px 0;
 
 <input id="pprice" placeholder="Price">
 
-<input id="pimage" placeholder="Image URL">
+<input type="file" id="pimage">
 
 <button onclick="addProduct()">Add Product</button>
 
 </div>
-
-
-<!-- PRODUCT LIST -->
 
 <div class="box">
 
@@ -93,51 +92,45 @@ padding:10px 0;
 
 </div>
 
-
-<!-- ORDERS -->
-
-<div class="box">
-
-<h3>Customer Orders</h3>
-
-<div id="orderList"></div>
-
-</div>
-
 </div>
 
 <script>
 
 let products = JSON.parse(localStorage.getItem("products")) || [];
 
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
-
-// ADD PRODUCT
-
 function addProduct(){
 
 let name=document.getElementById("pname").value;
 let price=document.getElementById("pprice").value;
-let image=document.getElementById("pimage").value;
+let file=document.getElementById("pimage").files[0];
+
+if(!name || !price || !file){
+alert("Fill all fields");
+return;
+}
+
+let reader=new FileReader();
+
+reader.onload=function(e){
 
 products.push({
 name:name,
 price:Number(price),
-image:image,
+image:e.target.result,
 stock:true
 });
 
 localStorage.setItem("products",JSON.stringify(products));
 
-alert("Product added");
+alert("Product Added");
 
 location.reload();
 
+};
+
+reader.readAsDataURL(file);
+
 }
-
-
-// DISPLAY PRODUCTS
 
 function loadProducts(){
 
@@ -151,7 +144,7 @@ container.innerHTML+=`
 
 <div class="product">
 
-<img src="${p.image}" width="80">
+<img src="${p.image}" width="100">
 
 <p>${p.name}</p>
 
@@ -160,12 +153,12 @@ container.innerHTML+=`
 <p>Status: ${p.stock ? "Available":"Out of Stock"}</p>
 
 <button onclick="toggleStock(${i})">
-
 ${p.stock ? "Set Out of Stock":"Set Available"}
-
 </button>
 
-<button onclick="deleteProduct(${i})">Delete</button>
+<button onclick="deleteProduct(${i})">
+Delete
+</button>
 
 </div>
 
@@ -174,9 +167,6 @@ ${p.stock ? "Set Out of Stock":"Set Available"}
 });
 
 }
-
-
-// OUT OF STOCK
 
 function toggleStock(i){
 
@@ -188,9 +178,6 @@ loadProducts();
 
 }
 
-
-// DELETE PRODUCT
-
 function deleteProduct(i){
 
 products.splice(i,1);
@@ -201,80 +188,7 @@ loadProducts();
 
 }
 
-
-// LOAD ORDERS
-
-function loadOrders(){
-
-let container=document.getElementById("orderList");
-
-container.innerHTML="";
-
-if(orders.length===0){
-
-container.innerHTML="No orders yet";
-
-return;
-
-}
-
-orders.forEach((o,i)=>{
-
-container.innerHTML+=`
-
-<div class="order">
-
-<p><b>Customer:</b> ${o.name}</p>
-
-<p><b>Phone:</b> ${o.phone}</p>
-
-<p><b>Email:</b> ${o.email}</p>
-
-<p><b>Amount:</b> ₹${o.amount}</p>
-
-<p><b>Date:</b> ${o.date}</p>
-
-<p>
-
-Status:
-
-<select onchange="updateStatus(${i},this.value)">
-
-<option ${o.status=="Pending"?"selected":""}>Pending</option>
-
-<option ${o.status=="Shipped"?"selected":""}>Shipped</option>
-
-<option ${o.status=="Delivered"?"selected":""}>Delivered</option>
-
-</select>
-
-</p>
-
-</div>
-
-`;
-
-});
-
-}
-
-
-// UPDATE ORDER STATUS
-
-function updateStatus(i,status){
-
-orders[i].status=status;
-
-localStorage.setItem("orders",JSON.stringify(orders));
-
-alert("Order status updated");
-
-}
-
-
 loadProducts();
-
-loadOrders();
 
 </script>
 
