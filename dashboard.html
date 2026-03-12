@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Customer Dashboard</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+margin:0;
+}
+
+header{
+background:#6b2d2d;
+color:white;
+padding:15px;
+display:flex;
+justify-content:space-between;
+}
+
+.container{
+display:flex;
+}
+
+.sidebar{
+width:200px;
+background:white;
+height:100vh;
+padding:20px;
+box-shadow:2px 0 5px rgba(0,0,0,0.1);
+}
+
+.sidebar button{
+width:100%;
+margin-bottom:10px;
+padding:10px;
+border:none;
+background:#6b2d2d;
+color:white;
+cursor:pointer;
+}
+
+.content{
+flex:1;
+padding:30px;
+}
+
+.box{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<h2>Neeha Store Dashboard</h2>
+
+<button onclick="logout()">Logout</button>
+
+</header>
+
+
+<div class="container">
+
+<div class="sidebar">
+
+<button onclick="showOrders()">My Orders</button>
+
+<button onclick="showAddress()">Saved Address</button>
+
+<button onclick="showAccount()">Account Details</button>
+
+<a href="index.html"><button>Back to Store</button></a>
+
+</div>
+
+
+<div class="content">
+
+<div id="dashboardContent"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const firebaseConfig = {
+apiKey: "PASTE_API_KEY",
+authDomain: "PASTE_AUTH_DOMAIN",
+projectId: "PASTE_PROJECT_ID",
+appId: "PASTE_APP_ID"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+
+auth.onAuthStateChanged(function(user){
+
+if(!user){
+
+alert("Please login first");
+
+window.location.href="account.html";
+
+}
+
+});
+
+
+function showOrders(){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+let html="<div class='box'><h3>My Orders</h3>";
+
+if(orders.length===0){
+
+html+="No orders yet";
+
+}
+
+orders.forEach(o=>{
+
+html+=`
+
+<p><b>Amount:</b> ₹${o.amount}</p>
+<p><b>Date:</b> ${o.date}</p>
+<hr>
+
+`;
+
+});
+
+html+="</div>";
+
+document.getElementById("dashboardContent").innerHTML=html;
+
+}
+
+
+
+function showAddress(){
+
+let address = localStorage.getItem("userAddress") || "No saved address";
+
+document.getElementById("dashboardContent").innerHTML=`
+
+<div class="box">
+
+<h3>Saved Address</h3>
+
+<p>${address}</p>
+
+<input id="newAddress" placeholder="Enter new address">
+
+<button onclick="saveAddress()">Save Address</button>
+
+</div>
+
+`;
+
+}
+
+
+function saveAddress(){
+
+let addr=document.getElementById("newAddress").value;
+
+localStorage.setItem("userAddress",addr);
+
+alert("Address saved");
+
+showAddress();
+
+}
+
+
+
+function showAccount(){
+
+let user=auth.currentUser;
+
+document.getElementById("dashboardContent").innerHTML=`
+
+<div class="box">
+
+<h3>Account Details</h3>
+
+<p><b>Email:</b> ${user.email}</p>
+
+</div>
+
+`;
+
+}
+
+
+
+function logout(){
+
+auth.signOut();
+
+localStorage.removeItem("userLoggedIn");
+
+window.location.href="account.html";
+
+}
+
+</script>
+
+</body>
+</html>
